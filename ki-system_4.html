@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KI-System in 90 Tagen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #080808;
+      --white: #f0ede6;
+      --cream: #e8e3d9;
+      --accent: #c8f04a;
+      --muted: #3a3a3a;
+      --border: #222;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease;
+      mix-blend-mode: exclusion;
+    }
+    .cursor.grow { width: 40px; height: 40px; }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.35;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .nav-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .nav-cta {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--accent);
+      padding: 0.6rem 1.4rem;
+      text-decoration: none;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { background: var(--white); transform: translateY(-1px); }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      padding-top: 80px;
+    }
+
+    .hero-left {
+      padding: 8rem 3rem 6rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+    .hero-title em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      font-weight: 400;
+      line-height: 1.6;
+      color: #999;
+      max-width: 420px;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--accent);
+      color: var(--black);
+      padding: 1.1rem 2rem;
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      width: fit-content;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.8s forwards;
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(200,240,74,0.25); }
+    .hero-cta svg { width: 16px; height: 16px; }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-number {
+      position: absolute;
+      top: 8rem;
+      right: 3rem;
+      font-size: clamp(8rem, 18vw, 16rem);
+      font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--border);
+      line-height: 1;
+      user-select: none;
+      opacity: 0;
+      animation: fadeIn 1s ease 1s forwards;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeUp 0.8s ease 1s forwards;
+    }
+    .stat {
+      background: var(--black);
+      padding: 2rem;
+    }
+    .stat-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    /* ─── PROBLEM ─── */
+    .problem {
+      padding: 8rem 3rem;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+    }
+    .section-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .problem-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    .problem-text p {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #aaa;
+    }
+    .problem-text p strong { color: var(--white); }
+    .problem-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+    }
+    .problem-list li {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #888;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .problem-list li:last-child { border-bottom: none; }
+    .problem-list li:hover { background: #111; color: var(--white); }
+    .problem-list li::before {
+      content: '—';
+      color: var(--accent);
+      flex-shrink: 0;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ─── OFFER ─── */
+    .offer {
+      border-bottom: 1px solid var(--border);
+    }
+    .offer-header {
+      padding: 6rem 3rem 4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .offer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .offer-card {
+      padding: 3rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .offer-card:last-child { border-right: none; }
+    .offer-card:hover { background: #0f0f0f; }
+    .offer-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .offer-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .offer-card p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #777;
+    }
+
+    /* ─── WHY ME ─── */
+    .why {
+      padding: 8rem 3rem;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 6rem;
+      align-items: center;
+    }
+    .why-quote {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+    .why-quote em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .why-body p {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+    .why-body p strong { color: var(--white); }
+
+    /* ─── PROOF ─── */
+    .proof {
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .proof-item {
+      padding: 5rem 3rem;
+      border-right: 1px solid var(--border);
+    }
+    .proof-item:last-child { border-right: none; }
+    .proof-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .proof-item h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .proof-item p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #777;
+    }
+
+    /* ─── PRICING ─── */
+    .pricing {
+      border-bottom: 1px solid var(--border);
+    }
+    .pricing-header {
+      padding: 6rem 3rem 4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pricing-card {
+      padding: 3rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: background 0.3s;
+    }
+    .pricing-card:last-child { border-right: none; }
+    .pricing-card:hover { background: #0f0f0f; }
+    .pricing-card.featured { background: #0d0d0d; }
+    .pricing-card.featured:hover { background: #111; }
+    .pricing-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--accent);
+      padding: 0.3rem 0.8rem;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+    .pricing-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .pricing-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .pricing-price {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .pricing-price span {
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #555;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+    .pricing-card.featured .pricing-price { color: var(--accent); }
+    .pricing-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    .pricing-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .pricing-features li {
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: #888;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .pricing-features li::before {
+      content: '—';
+      color: var(--accent);
+      flex-shrink: 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+    }
+    .pricing-card.featured .pricing-features li { color: #aaa; }
+    .retainer-strip {
+      padding: 3rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 3rem;
+      background: #0a0a0a;
+      transition: background 0.3s;
+    }
+    .retainer-strip:hover { background: #0f0f0f; }
+    .retainer-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .retainer-strip h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .retainer-strip p {
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #666;
+      max-width: 560px;
+    }
+    .retainer-price { text-align: right; flex-shrink: 0; }
+    .retainer-price .pricing-price { font-size: 1.8rem; white-space: nowrap; }
+    .retainer-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #444;
+      margin-top: 0.5rem;
+    }
+
+    /* ─── CTA SECTION ─── */
+    .cta-section {
+      padding: 10rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,240,74,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section .section-tag { justify-content: center; display: flex; }
+    .cta-section h2 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    .cta-section h2 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .cta-section p {
+      font-size: 1.1rem;
+      color: #777;
+      margin-bottom: 3rem;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+    .cta-big {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--accent);
+      color: var(--black);
+      padding: 1.4rem 3rem;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta-big:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(200,240,74,0.3); }
+
+    .price-note {
+      margin-top: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: #444;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 2rem 3rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: #444;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-left { padding: 8rem 1.5rem 4rem; }
+      .hero-right { padding: 3rem 1.5rem; border-top: 1px solid var(--border); }
+      .hero-number { font-size: 8rem; top: 2rem; }
+      .problem { grid-template-columns: 1fr; gap: 3rem; padding: 5rem 1.5rem; }
+      .offer-header { padding: 4rem 1.5rem 2rem; flex-direction: column; gap: 1rem; align-items: flex-start; }
+      .offer-grid { grid-template-columns: 1fr; }
+      .offer-card { border-right: none; }
+      .why { grid-template-columns: 1fr; gap: 3rem; padding: 5rem 1.5rem; }
+      .proof { grid-template-columns: 1fr; }
+      .proof-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .pricing-header { padding: 4rem 1.5rem 2rem; flex-direction: column; gap: 1rem; align-items: flex-start; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-card { border-right: none; }
+      .retainer-strip { grid-template-columns: 1fr; padding: 3rem 1.5rem; gap: 2rem; }
+      .retainer-price { text-align: left; }
+      .cta-section { padding: 6rem 1.5rem; }
+      footer { flex-direction: column; gap: 1rem; padding: 2rem 1.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">KI.System / 90 Tage</div>
+    <a href="#contact" class="nav-cta">Gespräch buchen</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-tag">Done-for-you · DACH · 90 Tage</p>
+      <h1 class="hero-title">KI arbeitet.<br><em>Du führst</em><br>dein Business.</h1>
+      <p class="hero-sub">Ich baue dir ein maßgeschneidertes KI-System das Zeit spart, mehr Kunden generiert und sicherstellt, dass du nicht abgehängt wirst – während du dich um das kümmerst was wirklich zählt.</p>
+      <a href="#contact" class="hero-cta">
+        Kostenloses Erstgespräch
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+    </div>
+    <div class="hero-right">
+      <div class="hero-number">90</div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">5.000€+</div>
+          <div class="stat-label">Mehrwert / Monat</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">3 Mon.</div>
+          <div class="stat-label">Komplette Transformation</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Done-for-you</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">0h</div>
+          <div class="stat-label">Dein Lernaufwand</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="problem">
+    <div class="reveal">
+      <p class="section-tag">// Das Problem</p>
+      <h2 class="section-title">Dein Business verliert täglich Stunden an Aufgaben die eine KI in Minuten erledigt.</h2>
+    </div>
+    <div class="problem-text reveal">
+      <p>Die meisten Unternehmen im DACH-Raum wissen nicht was KI für sie leisten könnte. Nicht weil sie es nicht wollen – sondern weil sie es <strong>noch nie gesehen haben</strong>.</p>
+      <p>Während du das liest, bauen deine Wettbewerber bereits Systeme die <strong>schneller, günstiger und professioneller liefern</strong> als alles was du manuell schaffen kannst.</p>
+      <ul class="problem-list">
+        <li>Stunden mit E-Mails, Tabellen und Koordination verschwenden</li>
+        <li>Kreativprozesse die doppelt so lang dauern wie nötig</li>
+        <li>Kunden gewinnen bleibt Zufall statt System</li>
+        <li>Kein Plan wie man mit KI überhaupt anfangen soll</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- OFFER -->
+  <section class="offer">
+    <div class="offer-header reveal">
+      <div>
+        <p class="section-tag">// Das Angebot</p>
+        <h2 class="section-title">Was ich in 90 Tagen<br>für dich baue</h2>
+      </div>
+      <p style="color:#666; font-size:0.9rem; max-width:300px; text-align:right; line-height:1.6;">Kein Kurs. Keine Theorie.<br>Ich setze um – du kassierst die Ergebnisse.</p>
+    </div>
+    <div class="offer-grid">
+      <div class="offer-card reveal">
+        <p class="offer-num">01</p>
+        <h3>KI-Prozess Analyse</h3>
+        <p>Ich schaue mir dein Business genau an. Welche Aufgaben frisst die meiste Zeit? Wo liegen die größten Hebel? Daraus entsteht dein persönlicher KI-Fahrplan.</p>
+      </div>
+      <div class="offer-card reveal">
+        <p class="offer-num">02</p>
+        <h3>System Aufbau</h3>
+        <p>Ich baue maßgeschneiderte Automatisierungen, KI-Workflows und Tools die sofort in deinen Alltag integriert werden. E-Mail, Kundengewinnung, Kreativprozesse – alles.</p>
+      </div>
+      <div class="offer-card reveal">
+        <p class="offer-num">03</p>
+        <h3>90 Tage Begleitung</h3>
+        <p>Ich bin während des gesamten Prozesses an deiner Seite. Optimierungen, neue Ideen, Probleme lösen – du bist nie allein. Das System wächst mit deinem Business.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY ME -->
+  <section class="why">
+    <div class="reveal">
+      <h2 class="why-quote">Ich bin <em>faul</em> – im besten Sinne des Wortes.</h2>
+    </div>
+    <div class="why-body reveal">
+      <p>Ich arbeite nicht viel. Ich arbeite <strong>effektiv</strong>. Ich hasse es, mir das Leben schwer zu machen. Deshalb habe ich mir in den letzten Jahren selbst beigebracht wie man KI wirklich nutzt – nicht als Spielzeug, sondern als ernsthaftes Werkzeug.</p>
+      <p>Ich habe eine <strong>vollständige App mit Claude Code gebaut</strong>. Ich habe Kundenprojekte in einem Tag erledigt die normalerweise eine Woche dauern. Ich habe Agenturen gezeigt was möglich ist – und ihr Gesichtsausdruck sagt mehr als jede Fallstudie.</p>
+      <p>Kein Berater mit Anzug. Kein Agentur-Overhead. Jemand der <strong>KI lebt</strong> – weil er nicht anders kann.</p>
+    </div>
+  </section>
+
+  <!-- PROOF -->
+  <section class="proof">
+    <div class="proof-item reveal">
+      <p class="proof-label">// Beweis 01</p>
+      <h3>Dialogpostversand in Stunden statt Tagen</h3>
+      <p>Eine komplette Excel-Kundendatenbank sortiert, koordiniert und vorbereitet – was normalerweise einen ganzen Tag dauert, erledigt in Stunden. Zeit die direkt in die Arbeit reinvestiert wurde.</p>
+    </div>
+    <div class="proof-item reveal">
+      <p class="proof-label">// Beweis 02</p>
+      <h3>Vollständige App gebaut – ohne klassische Entwicklerausbildung</h3>
+      <p>Eine KI-gestützte Journal App mit automatischer Task- und Gewohnheitserstellung. Entwickelt mit Claude Code. Lebender Beweis dass die Werkzeuge da sind – man muss sie nur kennen.</p>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing">
+    <div class="pricing-header reveal">
+      <div>
+        <p class="section-tag">// Investition</p>
+        <h2 class="section-title">Das richtige Paket<br>für dein Business</h2>
+      </div>
+      <p style="color:#666; font-size:0.9rem; max-width:280px; text-align:right; line-height:1.6;">Einmalig. Kein Abo-Zwang.<br>Klares Ergebnis – oder wir reden nochmal.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <!-- Paket 01 -->
+      <div class="pricing-card reveal">
+        <p class="pricing-num">Paket 01</p>
+        <h3>KI Kickstart</h3>
+        <div class="pricing-price">990 €<span> einmalig</span></div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>Tiefe Analyse deiner Business-Prozesse</li>
+          <li>2–3 sofort umsetzbare Quick Wins</li>
+          <li>Persönlicher KI-Fahrplan</li>
+          <li>1 Strategie-Call (60 Min.)</li>
+        </ul>
+      </div>
+
+      <!-- Paket 02 -->
+      <div class="pricing-card featured reveal">
+        <span class="pricing-badge">Beliebt</span>
+        <p class="pricing-num">Paket 02</p>
+        <h3>KI System 90 Tage</h3>
+        <div class="pricing-price">3.500 €<span> einmalig</span></div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>Alles aus Paket 01</li>
+          <li>Maßgeschneiderte Automatisierungen</li>
+          <li>KI-Workflows für deinen Alltag</li>
+          <li>90 Tage persönliche Begleitung</li>
+          <li>Monatliche Strategy-Calls</li>
+        </ul>
+      </div>
+
+      <!-- Paket 03 -->
+      <div class="pricing-card reveal">
+        <p class="pricing-num">Paket 03</p>
+        <h3>KI System + Design</h3>
+        <div class="pricing-price">5.500 €<span> einmalig</span></div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>Alles aus Paket 02</li>
+          <li>Grafikdesign & Branding</li>
+          <li>KI-Kreativproduktion</li>
+          <li>Marketingmaterialien</li>
+          <li>Ausgebildeter Mediengestalter</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Retainer Add-on -->
+    <div class="retainer-strip reveal">
+      <div>
+        <p class="retainer-tag">// Add-on · Nach jedem Paket buchbar · Monatlich kündbar</p>
+        <h3>Retainer – Laufende Betreuung</h3>
+        <p>Dein KI-System wächst weiter. Laufende Optimierungen, schneller Support und monatliche Check-ins halten dich dauerhaft vorne. Kein Risiko – kein langfristiger Vertrag.</p>
+      </div>
+      <div class="retainer-price">
+        <div class="pricing-price">500–800 €<span> / Monat</span></div>
+        <p class="retainer-note">Monatlich kündbar</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="contact">
+    <div class="cta-bg"></div>
+    <p class="section-tag">// Bereit?</p>
+    <h2>Mehr <em>Gewinn</em>.<br>Weniger <em>Aufwand</em>.</h2>
+    <p>Das erste Gespräch ist kostenlos und unverbindlich. Wir schauen gemeinsam ob und wie KI dein Business verändern kann.</p>
+    <a href="mailto:hallo@example.com" class="cta-big">
+      Kostenloses Erstgespräch buchen
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </a>
+    <p class="price-note">3-Monats-Programm · Ab 3.500 € · Nur 3 Plätze pro Quartal</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 · KI-System in 90 Tagen</p>
+    <p>Parchim, Deutschland · DACH-Markt</p>
+  </footer>
+
+  <script>
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('grow'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('grow'));
+    });
+
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    document.querySelectorAll('.offer-card').forEach((card, i) => {
+      card.style.transitionDelay = (i * 0.1) + 's';
+    });
+  </script>
+</body>
+</html>
