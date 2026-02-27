@@ -101,27 +101,36 @@
     }
     .nav-cta:hover { background: var(--white); transform: translateY(-1px); }
 
+    /* ── HERO CANVAS ── */
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     /* ── HERO ── */
     .hero {
       min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      align-items: center;
       border-bottom: 1px solid var(--border);
       padding-top: 64px;
       position: relative;
       overflow: hidden;
     }
 
-    /* Massive "90" watermark spanning both columns */
+    /* Massive "90" watermark */
     .hero-watermark {
       position: absolute;
-      bottom: -0.15em;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: clamp(16rem, 28vw, 26rem);
+      bottom: -0.12em;
+      right: -0.05em;
+      font-size: clamp(18rem, 32vw, 30rem);
       font-weight: 800;
       color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+      -webkit-text-stroke: 1px rgba(255,255,255,0.035);
       line-height: 1;
       user-select: none;
       pointer-events: none;
@@ -132,8 +141,8 @@
     }
 
     .hero-left {
-      padding: 7rem 5rem 7rem 4rem;
-      border-right: 1px solid var(--border);
+      padding: 8rem 4rem 8rem;
+      max-width: 820px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -163,9 +172,9 @@
     }
 
     .hero-title {
-      font-size: clamp(3.5rem, 6.5vw, 6.5rem);
+      font-size: clamp(2.8rem, 4.5vw, 5rem);
       font-weight: 800;
-      line-height: 0.95;
+      line-height: 0.93;
       letter-spacing: -0.04em;
       margin-bottom: 2.5rem;
       opacity: 0;
@@ -178,11 +187,11 @@
     }
 
     .hero-sub {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 400;
       line-height: 1.75;
       color: var(--text-mid);
-      max-width: 400px;
+      max-width: 520px;
       margin-bottom: 3.5rem;
       opacity: 0;
       animation: fadeUp 0.9s ease 0.4s forwards;
@@ -209,44 +218,30 @@
     .hero-cta svg { width: 14px; height: 14px; transition: transform 0.2s; }
     .hero-cta:hover svg { transform: translateX(4px); }
 
-    .hero-right {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 0 0 0 0;
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero-stats {
+    /* ── HERO STATS BAR ── */
+    .hero-stats-bar {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      height: 100%;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
     }
     .stat {
-      padding: 3rem;
-      border-left: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+      padding: 2.5rem 4rem;
+      border-right: 1px solid var(--border);
       transition: background 0.3s;
     }
+    .stat:last-child { border-right: none; }
     .stat:hover { background: #0c0c0c; }
-    .stat:nth-child(2) { border-left: none; }
-    .stat:nth-child(3) { border-bottom: none; }
-    .stat:nth-child(4) { border-bottom: none; border-left: none; }
     .stat-num {
-      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-size: clamp(1.8rem, 2.5vw, 2.5rem);
       font-weight: 800;
       color: var(--accent);
       line-height: 1;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.5rem;
       letter-spacing: -0.03em;
     }
     .stat-label {
       font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-dim);
@@ -802,14 +797,13 @@
     @media (max-width: 1024px) {
       nav { padding: 1.2rem 2rem; }
       .nav-tagline { display: none; }
-      .hero { grid-template-columns: 1fr; }
-      .hero-left { padding: 8rem 2rem 4rem; }
-      .hero-right { border-top: 1px solid var(--border); }
-      .hero-stats { grid-template-columns: repeat(4, 1fr); height: auto; }
-      .stat { border-left: 1px solid var(--border); border-bottom: none; padding: 2rem 1.5rem; }
-      .stat:nth-child(2) { border-left: 1px solid var(--border); }
-      .stat:nth-child(3), .stat:nth-child(4) { border-bottom: none; }
+      .hero { min-height: auto; padding: 8rem 2rem 5rem; }
+      .hero-left { padding: 0; max-width: 100%; }
       .hero-watermark { display: none; }
+      .hero-stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .stat { border-bottom: 1px solid var(--border); padding: 2rem; }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(3), .stat:nth-child(4) { border-bottom: none; }
       .problem { padding: 6rem 2rem; }
       .problem-top { grid-template-columns: 1fr; gap: 3rem; margin-bottom: 3rem; }
       .problem-list { grid-template-columns: 1fr 1fr; }
@@ -849,37 +843,38 @@
 
   <!-- HERO -->
   <section class="hero">
+    <canvas id="hero-canvas"></canvas>
     <div class="hero-watermark">90</div>
     <div class="hero-left">
-      <p class="hero-tag">Done-for-you · DACH · 90 Tage</p>
+      <p class="hero-tag">KI-Systeme für Unternehmen in Mecklenburg-Vorpommern</p>
       <h1 class="hero-title">KI arbeitet.<br><em>Du führst</em>dein Business.</h1>
-      <p class="hero-sub">Ich baue dir ein maßgeschneidertes KI-System das Zeit spart, mehr Kunden generiert und sicherstellt, dass du nicht abgehängt wirst – während du dich um das kümmerst was wirklich zählt.</p>
+      <p class="hero-sub">Egal ob 5 oder 500 Mitarbeiter – ich analysiere Ihre Prozesse und baue KI-Systeme, die messbar Zeit und Kosten sparen. Persönlich, lokal, ohne Agentur-Overhead.</p>
       <a href="#contact" class="hero-cta">
         Kostenloses Erstgespräch
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
     </div>
-    <div class="hero-right">
-      <div class="hero-stats">
-        <div class="stat">
-          <div class="stat-num">5.000€+</div>
-          <div class="stat-label">Mehrwert<br>pro Monat</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">3 Mon.</div>
-          <div class="stat-label">Komplette<br>Transformation</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">100%</div>
-          <div class="stat-label">Done-for-<br>you</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">0h</div>
-          <div class="stat-label">Dein Lern-<br>aufwand</div>
-        </div>
-      </div>
-    </div>
   </section>
+
+  <!-- STATS BAR -->
+  <div class="hero-stats-bar">
+    <div class="stat">
+      <div class="stat-num">5.000€+</div>
+      <div class="stat-label">Mehrwert pro Monat</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3 Mon.</div>
+      <div class="stat-label">Komplette Transformation</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">Vor Ort</div>
+      <div class="stat-label">Aus Mecklenburg-Vorpommern</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0h</div>
+      <div class="stat-label">Dein Lernaufwand</div>
+    </div>
+  </div>
 
   <!-- TICKER -->
   <div class="ticker-wrap">
@@ -897,7 +892,7 @@
         <h2 class="section-title">Dein Business verliert täglich Stunden an Aufgaben die eine KI in Minuten erledigt.</h2>
       </div>
       <div class="problem-copy reveal">
-        <p>Die meisten Unternehmen im DACH-Raum wissen nicht was KI für sie leisten könnte. Nicht weil sie es nicht wollen – sondern weil sie es <strong>noch nie gesehen haben</strong>.</p>
+        <p>Ob Handwerksbetrieb, Dienstleister oder gewachsenes Unternehmen – die meisten Betriebe in Mecklenburg-Vorpommern wissen nicht, wo KI in ihrem Alltag konkret ansetzen würde. Nicht, weil sie es nicht wollen. Sondern weil sie es <strong>noch nie live in einem Betrieb wie ihrem gesehen haben</strong>.</p>
         <p>Während du das liest, bauen deine Wettbewerber bereits Systeme die <strong>schneller, günstiger und professioneller liefern</strong> als alles was du manuell schaffen kannst.</p>
       </div>
     </div>
@@ -947,7 +942,7 @@
       <h2 class="why-quote">Ich bin <em>faul</em> – im besten Sinne des Wortes.</h2>
     </div>
     <div class="why-right reveal">
-      <p>Ich arbeite nicht viel. Ich arbeite <strong>effektiv</strong>. Ich hasse es, mir das Leben schwer zu machen. Deshalb habe ich mir in den letzten Jahren selbst beigebracht wie man KI wirklich nutzt – nicht als Spielzeug, sondern als ernsthaftes Werkzeug.</p>
+      <p>Ich lebe in Parchim. Ich kenne die Realität von Betrieben in Mecklenburg-Vorpommern – <strong>Fachkräftemangel, volle Auftragsbücher, wenig Zeit für Experimente</strong>. Meine ersten KI-Projekte habe ich für kleine und mittelständische Unternehmen umgesetzt – persönlich vor Ort, mit klar messbaren Ergebnissen. Kein Berliner Agentur-Overhead. Kein anonymer Konzernberater.</p>
       <p>Ich habe eine <strong>vollständige App mit Claude Code gebaut</strong>. Ich habe Kundenprojekte in einem Tag erledigt die normalerweise eine Woche dauern. Ich habe Agenturen gezeigt was möglich ist – und ihr Gesichtsausdruck sagt mehr als jede Fallstudie.</p>
       <p>Kein Berater mit Anzug. Kein Agentur-Overhead. Jemand der <strong>KI lebt</strong> – weil er nicht anders kann.</p>
     </div>
@@ -1047,7 +1042,7 @@
       Kostenloses Erstgespräch buchen
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </a>
-    <p class="price-note">3-Monats-Programm · Ab 3.500 € · Nur 3 Plätze pro Quartal</p>
+    <p class="price-note">Einstieg ab 990 € · Modular ausbaubar · Begrenzte Plätze pro Quartal</p>
   </section>
 
   <!-- FOOTER -->
@@ -1057,6 +1052,76 @@
   </footer>
 
   <script>
+    // ── Interactive Lines Canvas ──
+    const canvas = document.getElementById('hero-canvas');
+    const ctx = canvas.getContext('2d');
+    const hero = canvas.parentElement;
+
+    let mouse = { x: -9999, y: -9999 };
+    const SPACING = 40;
+    const LINE_LEN = 10;
+
+    function resize() {
+      canvas.width = hero.offsetWidth;
+      canvas.height = hero.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    hero.addEventListener('mousemove', e => {
+      const rect = hero.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    hero.addEventListener('mouseleave', () => {
+      mouse.x = -9999;
+      mouse.y = -9999;
+    });
+
+    function drawLines() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cols = Math.ceil(canvas.width / SPACING) + 1;
+      const rows = Math.ceil(canvas.height / SPACING) + 1;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * SPACING;
+          const y = r * SPACING;
+
+          const dx = mouse.x - x;
+          const dy = mouse.y - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          let angle;
+          if (dist < 1) {
+            angle = 0;
+          } else {
+            angle = Math.atan2(dy, dx);
+          }
+
+          // Opacity: close = bright, far = dim
+          const maxDist = 320;
+          const opacity = dist < maxDist
+            ? 0.08 + 0.3 * (1 - dist / maxDist)
+            : 0.08;
+
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+
+          ctx.beginPath();
+          ctx.moveTo(x - cos * LINE_LEN / 2, y - sin * LINE_LEN / 2);
+          ctx.lineTo(x + cos * LINE_LEN / 2, y + sin * LINE_LEN / 2);
+          ctx.strokeStyle = `rgba(200, 240, 74, ${opacity})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      requestAnimationFrame(drawLines);
+    }
+    drawLines();
+
     // Cursor
     const cursor = document.getElementById('cursor');
     document.addEventListener('mousemove', e => {
